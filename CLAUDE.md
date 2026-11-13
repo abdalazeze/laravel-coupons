@@ -24,7 +24,8 @@ Goals, in order:
 
 - PHP 8.2+, Laravel 11 and 12 (support both).
 - Orchestra Testbench for package tests, Pest as the runner.
-- PHPStan (Larastan) level 8, Laravel Pint with the default preset.
+- PHPStan (Larastan) level 8 (`phpstan.neon.dist`), Laravel Pint with the Laravel preset plus strict types and sorted imports (`pint.json`).
+- Code style, naming, errors, tests and commit format: follow `CONTRIBUTING.md`. It is the source of truth for style.
 - GitHub Actions: tests on MySQL 8 and PostgreSQL 16, PHPStan, Pint check.
 - SQLite is fine for unit tests, but concurrency tests must run on MySQL and PostgreSQL (SQLite has no `SELECT ... FOR UPDATE`).
 

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Idempotency guard: the same coupon cannot be applied twice to the same redeemable.
-            $table->unique(['coupon_id', 'redeemable_type', 'redeemable_id']);
+            $table->unique(['coupon_id', 'redeemable_type', 'redeemable_id'], 'cr_coupon_redeemable_unique');
         });
     }
 

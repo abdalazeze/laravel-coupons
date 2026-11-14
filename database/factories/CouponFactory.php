@@ -15,8 +15,10 @@ final class CouponFactory extends Factory
 {
     protected $model = Coupon::class;
 
+    /** @return array<string, mixed> */
     public function definition(): array
     {
+        /** @var CouponType $type */
         $type = $this->faker->randomElement(CouponType::cases());
 
         return [

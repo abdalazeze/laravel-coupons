@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Abdalazeze\Coupons\Facades;
 
+use Abdalazeze\Coupons\Contracts\Redeemable;
 use Abdalazeze\Coupons\CouponsManager;
+use Abdalazeze\Coupons\Data\ValidationResult;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
 
 /**
  * @see CouponsManager
+ *
+ * @method static ValidationResult validate(string $code, Redeemable $redeemable, Model $redeemer)
  */
 final class Coupons extends Facade
 {

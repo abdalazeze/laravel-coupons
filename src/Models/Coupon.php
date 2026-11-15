@@ -89,7 +89,12 @@ class Coupon extends Model
     /** @return HasMany<CouponRedemption, $this> */
     public function redemptions(): HasMany
     {
-        return $this->hasMany(CouponRedemption::class);
+        /** @var class-string<CouponRedemption> $model */
+        $model = config('coupons.models.redemption', CouponRedemption::class);
+
+        // Explicit key: Laravel would guess it from the class name, so a swapped-in
+        // App\Models\PromoCoupon would look for promo_coupon_id.
+        return $this->hasMany($model, 'coupon_id');
     }
 
     public function isActive(): bool

@@ -54,7 +54,10 @@ class CouponRedemption extends Model
     /** @return BelongsTo<Coupon, $this> */
     public function coupon(): BelongsTo
     {
-        return $this->belongsTo(Coupon::class);
+        /** @var class-string<Coupon> $model */
+        $model = config('coupons.models.coupon', Coupon::class);
+
+        return $this->belongsTo($model, 'coupon_id');
     }
 
     /** @return MorphTo<Model, $this> */

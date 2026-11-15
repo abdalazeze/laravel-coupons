@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Abdalazeze\Coupons\Tests\Models;
 
+use Abdalazeze\Coupons\Concerns\HasCoupons;
 use Abdalazeze\Coupons\Contracts\Redeemable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Order extends Model implements Redeemable
 {
+    use HasCoupons;
+
     public $timestamps = false;
 
     protected $guarded = [];

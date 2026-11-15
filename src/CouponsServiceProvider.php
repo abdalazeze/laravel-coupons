@@ -6,6 +6,7 @@ namespace Abdalazeze\Coupons;
 
 use Abdalazeze\Coupons\Calculators\DefaultDiscountCalculator;
 use Abdalazeze\Coupons\Contracts\DiscountCalculator;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 
 class CouponsServiceProvider extends ServiceProvider
@@ -18,6 +19,7 @@ class CouponsServiceProvider extends ServiceProvider
 
         $this->app->singleton(CouponsManager::class, fn () => new CouponsManager(
             calculator: $this->app->make(DiscountCalculator::class),
+            events: $this->app->make(Dispatcher::class),
         ));
 
         // Keep the 'coupons' key so the Facade continues to resolve correctly.

@@ -12,9 +12,18 @@ All notable changes to this package are documented here. The format follows [Kee
 - The unique index on redemptions is named after its table. A fixed name collided on SQLite and PostgreSQL, where index names are schema-wide.
 - `Coupon::redemptions()` and `CouponRedemption::coupon()` use the models in `coupons.models`. A swapped coupon model also broke `redemptions()`, because Laravel guessed the foreign key from the subclass name.
 
+### Added
+
+- Laravel 13 support (13.40+, PHP 8.3+).
+
+### Removed
+
+- Laravel 11 support. It is end-of-life, every 11.x release has unpatched security advisories, and current Composer refuses to install it by default. Apps on Laravel 11 can stay on 0.1.1.
+
 ### Changed
 
-- CI tests Laravel 11 and 12 on PHP 8.2, 8.3 and 8.4, plus a run on the lowest allowed dependency versions. Laravel 11 support was claimed before but never tested.
+- The minimum Laravel 12 version is 12.71, the first release with every known advisory fixed.
+- CI tests Laravel 12 and 13 on PHP 8.2, 8.3 and 8.4, plus a run on the lowest allowed dependency versions.
 
 ### Fixed
 

@@ -59,8 +59,8 @@ Each attempt is a separate PHP process with its own database connection. Every w
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 11 or 12
+- PHP 8.2+ (8.3+ on Laravel 13)
+- Laravel 12.71+ or 13.40+. Earlier releases, Laravel 11 included, have unpatched security advisories. Apps still on Laravel 11 can use v0.1.1.
 - MySQL 8 or PostgreSQL 16 for the concurrency guarantees. The package runs on SQLite, but the concurrency tests do not.
 
 ## Installation

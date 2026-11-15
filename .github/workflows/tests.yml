@@ -20,6 +20,11 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
       - name: Check style
         run: vendor/bin/pint --test
+      # Apps install without dev autoload rules; Coupon::factory() must still resolve there.
+      - name: Check production autoload
+        run: |
+          composer dump-autoload --no-dev
+          php -r 'require "vendor/autoload.php"; exit(class_exists(Abdalazeze\Coupons\Database\Factories\CouponFactory::class) ? 0 : 1);'
 
   phpstan:
     name: PHPStan

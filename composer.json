@@ -27,13 +27,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Abdalazeze\\Coupons\\": "src/"
+            "Abdalazeze\\Coupons\\": "src/",
+            "Abdalazeze\\Coupons\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Abdalazeze\\Coupons\\Tests\\": "tests/",
-            "Abdalazeze\\Coupons\\Database\\Factories\\": "database/factories/"
+            "Abdalazeze\\Coupons\\Tests\\": "tests/"
         }
     },
     "extra": {

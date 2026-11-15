@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('coupons', function (Blueprint $table): void {
+        Schema::create($this->table(), function (Blueprint $table): void {
             $table->id();
             $table->string('code')->unique();
             $table->string('type');
@@ -32,6 +32,11 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('coupons');
+        Schema::dropIfExists($this->table());
+    }
+
+    private function table(): string
+    {
+        return config('coupons.table_names.coupons', 'coupons');
     }
 };

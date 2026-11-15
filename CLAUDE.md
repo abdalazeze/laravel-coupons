@@ -22,7 +22,8 @@ Goals, in order:
 
 ## Stack and standards
 
-- PHP 8.2+, Laravel 11 and 12 (support both).
+- PHP 8.2+, Laravel 12 and 13 (support both; Laravel 13 needs PHP 8.3). Laravel 11 was dropped in 0.1.2: it is end-of-life with unpatched advisories, and Composer blocks it by default.
+- Framework floors (`^12.71|^13.40`) are the first releases with every known advisory fixed. Raise them when a new advisory lands, or CI's `--prefer-lowest` job will fail to resolve.
 - Orchestra Testbench for package tests, Pest as the runner.
 - PHPStan (Larastan) level 8 (`phpstan.neon.dist`), Laravel Pint with the Laravel preset plus strict types and sorted imports (`pint.json`).
 - Code style, naming, errors, tests and commit format: follow `CONTRIBUTING.md`. It is the source of truth for style.

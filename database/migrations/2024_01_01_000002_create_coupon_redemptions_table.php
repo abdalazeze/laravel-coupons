@@ -10,9 +10,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('coupon_redemptions', function (Blueprint $table): void {
+        Schema::create($this->table(), function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('coupon_id')->constrained()->cascadeOnDelete();
+            // constrained() without a table name would infer 'coupons' from the column name.
+            $table->foreignId('coupon_id')
+                ->constrained(config('coupons.table_names.coupons', 'coupons'))
+                ->cascadeOnDelete();
             $table->morphs('redeemer');
             $table->morphs('redeemable');
             $table->unsignedBigInteger('discount_amount');
@@ -20,12 +23,22 @@ return new class extends Migration
             $table->timestamps();
 
             // Idempotency guard: the same coupon cannot be applied twice to the same redeemable.
-            $table->unique(['coupon_id', 'redeemable_type', 'redeemable_id'], 'cr_coupon_redeemable_unique');
+            // Named explicitly: Laravel's generated name exceeds MySQL's 64-character limit.
+            // Prefixed with the table because SQLite and PostgreSQL index names are schema-wide.
+            $table->unique(
+                ['coupon_id', 'redeemable_type', 'redeemable_id'],
+                $this->table().'_coupon_redeemable_unique',
+            );
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('coupon_redemptions');
+        Schema::dropIfExists($this->table());
+    }
+
+    private function table(): string
+    {
+        return config('coupons.table_names.coupon_redemptions', 'coupon_redemptions');
     }
 };

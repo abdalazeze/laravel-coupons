@@ -10,6 +10,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(TestCase::class, RefreshDatabase::class)->in('Unit', 'Feature');
 
+// No RefreshDatabase: these tests run DDL, which commits implicitly on MySQL and would
+// break the wrapping transaction. They create and drop their own tables instead.
+uses(TestCase::class)->in('Configuration');
+
 // No RefreshDatabase: worker processes have their own connections and cannot see rows
 // created inside the test's uncommitted transaction. Without a database trait, Testbench's
 // loadMigrationsFrom() migrates before each test and rolls back after it, on committed data.

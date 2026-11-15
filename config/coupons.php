@@ -11,8 +11,9 @@ return [
     | Table Names
     |--------------------------------------------------------------------------
     |
-    | Rename these if your app uses a table prefix or the defaults collide with
-    | an existing table. Publish and edit the migrations to match.
+    | Rename these if the defaults collide with an existing table. The
+    | migrations read these names, so set them before you migrate and do not
+    | change them afterwards: rolling back would look for the new names.
     |
     */
 

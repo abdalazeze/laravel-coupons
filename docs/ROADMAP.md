@@ -6,7 +6,7 @@ Planning document for the "Later" list in `CLAUDE.md`. Nothing here is built yet
 
 | Release | Scope | Tier | Why this position |
 |---|---|---|---|
-| 0.1.2 | Hardening: Laravel 11 in CI, table names from config | Free | Fixes claims v0.1 already makes but does not prove |
+| 0.1.2 ✅ | Hardening: supported Laravel versions, table names and models from config | Free | Fixes claims v0.1 already makes but does not prove |
 | 0.2.0 | Stacking rules | Free | Small, and it extends the concurrency story to a new race |
 | 0.3.0 | Product and category scoping | Free | The feature most coupon packages are asked for; biggest pull for adoption |
 | Pro 1 | Filament admin | Paid | Turns the free package into something a non-developer can operate |
@@ -23,7 +23,9 @@ Free features first because goals 1 and 2 (portfolio, lead generation) need adop
 
 ---
 
-## 0.1.2 — Hardening
+## 0.1.2 — Hardening (done)
+
+**Outcome.** Merged in PR #1. Testing Laravel 11 in CI showed every 11.x release has unpatched security advisories, and current Composer refuses to install it. Laravel 11 was dropped, Laravel 13 added, and the framework floors set to `^12.71|^13.40`. Table names and models now come from config; the index name collision on SQLite and PostgreSQL was found and fixed on the way. The slow MySQL run was the broken migration setup from M3: the suite takes about 1 minute now. The original plan follows for reference.
 
 **Laravel 11 is claimed but untested.** `composer.lock` is gitignored, so every CI job resolves the newest versions: Laravel 12 with Testbench 10. Laravel 11 (Testbench 9) never runs.
 

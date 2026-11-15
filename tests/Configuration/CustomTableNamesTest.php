@@ -31,6 +31,12 @@ afterEach(function (): void {
     foreach (array_reverse(packageMigrations()) as $migration) {
         $migration->down();
     }
+
+    // Testbench rolls back the default tables after this hook, and down() reads the config.
+    config()->set('coupons.table_names', [
+        'coupons' => 'coupons',
+        'coupon_redemptions' => 'coupon_redemptions',
+    ]);
 });
 
 it('creates the tables under the configured names', function (): void {

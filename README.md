@@ -195,6 +195,18 @@ use Abdalazeze\Coupons\Contracts\DiscountCalculator;
 $this->app->bind(DiscountCalculator::class, MyDiscountCalculator::class);
 ```
 
+### In your app's tests
+
+The package ships a factory with states for the common cases:
+
+```php
+Coupon::factory()->percentage()->withLimit(100)->create();
+Coupon::factory()->fixed('EUR')->create(['value' => 500]);
+Coupon::factory()->expired()->create();
+Coupon::factory()->notStarted()->create();
+Coupon::factory()->inactive()->create();
+```
+
 ## What v0.1 does not do
 
 Be clear about these before you rely on the package:

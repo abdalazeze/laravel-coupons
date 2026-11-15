@@ -10,6 +10,7 @@ use Abdalazeze\Coupons\Data\ValidationResult;
 use Abdalazeze\Coupons\Enums\CouponType;
 use Abdalazeze\Coupons\Enums\RedemptionStatus;
 use Abdalazeze\Coupons\Events\CouponRedeemed;
+use Abdalazeze\Coupons\Events\CouponRedemptionReversed;
 use Abdalazeze\Coupons\Exceptions\CouponException;
 use Abdalazeze\Coupons\Exceptions\CouponExpired;
 use Abdalazeze\Coupons\Exceptions\CouponInactive;
@@ -18,6 +19,7 @@ use Abdalazeze\Coupons\Exceptions\CouponNotFound;
 use Abdalazeze\Coupons\Exceptions\CouponNotYetActive;
 use Abdalazeze\Coupons\Exceptions\CurrencyMismatch;
 use Abdalazeze\Coupons\Exceptions\MinimumOrderNotMet;
+use Abdalazeze\Coupons\Exceptions\RedemptionAlreadyReversed;
 use Abdalazeze\Coupons\Exceptions\UserCouponLimitReached;
 use Abdalazeze\Coupons\Models\Coupon;
 use Abdalazeze\Coupons\Models\CouponRedemption;
@@ -65,21 +67,46 @@ final class CouponsManager
         $result = $this->validate($code, $redeemable, $redeemer);
 
         try {
-            $redemption = $result->coupon->getConnection()->transaction(
+            return $result->coupon->getConnection()->transaction(
                 fn (): CouponRedemption => $this->redeemInTransaction($result, $redeemable, $redeemer),
             );
         } catch (UniqueConstraintViolationException $e) {
             // A parallel request for the same redeemable inserted first. Our transaction,
             // counter increment included, was rolled back, so we return the winner's row.
             // Caught outside the closure: on PostgreSQL a failed statement poisons the transaction.
-            return $this->findRedemption($result->coupon, $redeemable) ?? throw $e;
-        }
+            $existing = $this->findRedemption($result->coupon, $redeemable) ?? throw $e;
 
-        if ($redemption->wasRecentlyCreated) {
-            $this->events->dispatch(new CouponRedeemed($redemption));
+            return $this->existingRedemption($existing);
         }
+    }
 
-        return $redemption;
+    /**
+     * Reverses an applied redemption and releases its slot on the coupon counter.
+     * Reversing an already reversed redemption does nothing.
+     */
+    public function reverse(CouponRedemption $redemption): CouponRedemption
+    {
+        $redemption->getConnection()->transaction(function () use ($redemption): void {
+            // Conditional on the current status, so two parallel refund webhooks for the
+            // same order decrement the counter once, not twice.
+            $reversed = $redemption->newQuery()
+                ->whereKey($redemption->getKey())
+                ->where('status', RedemptionStatus::Applied)
+                ->update(['status' => RedemptionStatus::Reversed]);
+
+            if ($reversed === 0) {
+                return;
+            }
+
+            $this->couponModel()::query()
+                ->whereKey($redemption->coupon_id)
+                ->where('redemptions_count', '>', 0)
+                ->decrement('redemptions_count');
+
+            $this->events->dispatch(new CouponRedemptionReversed($redemption));
+        });
+
+        return $redemption->refresh();
     }
 
     /** @throws CouponException */
@@ -100,7 +127,7 @@ final class CouponsManager
         $existing = $this->findRedemption($coupon, $redeemable);
 
         if ($existing !== null) {
-            return $existing;
+            return $this->existingRedemption($existing);
         }
 
         $this->assertUserLimit($coupon, $redeemer);
@@ -110,7 +137,7 @@ final class CouponsManager
         // would deadlock two parallel transactions on MySQL.
         $this->claimGlobalSlot($coupon);
 
-        return $this->redemptionModel()::query()->create([
+        $redemption = $this->redemptionModel()::query()->create([
             'coupon_id' => $coupon->getKey(),
             'redeemer_type' => $redeemer->getMorphClass(),
             'redeemer_id' => $redeemer->getKey(),
@@ -119,6 +146,22 @@ final class CouponsManager
             'discount_amount' => $result->discountAmount,
             'status' => RedemptionStatus::Applied,
         ]);
+
+        // Dispatched inside the transaction on purpose: the event is ShouldDispatchAfterCommit,
+        // so the dispatcher holds it until the outermost commit and drops it on rollback.
+        $this->events->dispatch(new CouponRedeemed($redemption));
+
+        return $redemption;
+    }
+
+    /** @throws RedemptionAlreadyReversed */
+    private function existingRedemption(CouponRedemption $redemption): CouponRedemption
+    {
+        if ($redemption->status === RedemptionStatus::Reversed) {
+            throw new RedemptionAlreadyReversed($redemption);
+        }
+
+        return $redemption;
     }
 
     private function lockCoupon(Coupon $coupon): Coupon
@@ -173,6 +216,12 @@ final class CouponsManager
         }
     }
 
+    /** @return class-string<Coupon> */
+    private function couponModel(): string
+    {
+        return config('coupons.models.coupon', Coupon::class);
+    }
+
     /** @return class-string<CouponRedemption> */
     private function redemptionModel(): string
     {
@@ -181,10 +230,7 @@ final class CouponsManager
 
     private function findCoupon(string $code): Coupon
     {
-        /** @var class-string<Coupon> $model */
-        $model = config('coupons.models.coupon', Coupon::class);
-
-        $coupon = $model::query()
+        $coupon = $this->couponModel()::query()
             ->where('code', mb_strtoupper($code))
             ->first();
 

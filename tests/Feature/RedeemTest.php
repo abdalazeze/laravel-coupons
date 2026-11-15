@@ -10,6 +10,7 @@ use Abdalazeze\Coupons\Exceptions\CouponLimitReached;
 use Abdalazeze\Coupons\Exceptions\UserCouponLimitReached;
 use Abdalazeze\Coupons\Models\Coupon;
 use Abdalazeze\Coupons\Models\CouponRedemption;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 it('records an applied redemption with the calculated discount', function (): void {
@@ -147,4 +148,24 @@ it('does not fire CouponRedeemed when the redemption is refused', function (): v
     }
 
     Event::assertNotDispatched(CouponRedeemed::class);
+});
+
+it('does not fire CouponRedeemed when the surrounding transaction rolls back', function (): void {
+    $fired = 0;
+    Event::listen(CouponRedeemed::class, function () use (&$fired): void {
+        $fired++;
+    });
+    $coupon = Coupon::factory()->percentage()->create();
+
+    try {
+        DB::transaction(function () use ($coupon): void {
+            app(CouponsManager::class)->redeem($coupon->code, createOrder(), createUser());
+
+            throw new RuntimeException('payment failed');
+        });
+    } catch (RuntimeException) {
+    }
+
+    expect($fired)->toBe(0)
+        ->and($coupon->fresh()?->redemptions_count)->toBe(0);
 });

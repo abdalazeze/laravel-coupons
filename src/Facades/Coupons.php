@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Facade;
  *
  * @method static ValidationResult validate(string $code, Redeemable $redeemable, Model $redeemer)
  * @method static CouponRedemption redeem(string $code, Model&Redeemable $redeemable, Model $redeemer)
+ * @method static CouponRedemption reverse(CouponRedemption $redemption)
  */
 final class Coupons extends Facade
 {

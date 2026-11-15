@@ -4,6 +4,12 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-15
+
+### Fixed
+
+- `Coupon::factory()` threw a class-not-found error in apps that installed the package: the factory namespace was only in `autoload-dev`. It is now autoloaded in production, and CI checks it with a `--no-dev` autoloader.
+
 ## [0.1.0] - 2026-11-15
 
 First release.
@@ -24,5 +30,6 @@ First release.
 - `HasCoupons` trait — `$order->applyCoupon($code, $redeemer)` and a `couponRedemptions()` relation.
 - Concurrency test suite: 150 parallel processes against a coupon limited to 100 apply exactly 100; also covers the per-user limit and parallel retries of the same order.
 
-[Unreleased]: https://github.com/abdalazeze/laravel-coupons/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/abdalazeze/laravel-coupons/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/abdalazeze/laravel-coupons/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/abdalazeze/laravel-coupons/releases/tag/v0.1.0

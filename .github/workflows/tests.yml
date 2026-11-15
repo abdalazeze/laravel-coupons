@@ -89,6 +89,9 @@ jobs:
           coverage: none
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
+      # The concurrency suite holds 150 connections open at once; the default limit is 151.
+      - name: Raise connection limit
+        run: mysql -h127.0.0.1 -uroot -proot -e "SET GLOBAL max_connections = 500;"
       - name: Run tests
         run: vendor/bin/pest --colors=always
 
@@ -126,5 +129,14 @@ jobs:
           coverage: none
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
+      # The concurrency suite holds 150 connections open at once; the default limit is 100
+      # and only takes effect after a restart. Service containers accept no command args.
+      - name: Raise connection limit
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -U postgres -c "ALTER SYSTEM SET max_connections = 300;"
+          docker restart ${{ job.services.postgres.id }}
+          until pg_isready -h 127.0.0.1 -U postgres; do sleep 1; done
       - name: Run tests
         run: vendor/bin/pest --colors=always

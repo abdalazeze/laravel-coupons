@@ -7,6 +7,7 @@ use Abdalazeze\Coupons\Enums\RedemptionStatus;
 use Abdalazeze\Coupons\Events\CouponRedemptionReversed;
 use Abdalazeze\Coupons\Exceptions\RedemptionAlreadyReversed;
 use Abdalazeze\Coupons\Models\Coupon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 it('marks the redemption reversed and releases its slot on the counter', function (): void {
@@ -76,4 +77,26 @@ it('refuses to redeem a coupon again for an order whose redemption was reversed'
         ->toThrow(RedemptionAlreadyReversed::class);
 
     expect($coupon->fresh()?->redemptions_count)->toBe(0);
+});
+
+it('does not reverse or fire CouponRedemptionReversed when the surrounding transaction rolls back', function (): void {
+    $fired = 0;
+    Event::listen(CouponRedemptionReversed::class, function () use (&$fired): void {
+        $fired++;
+    });
+    $coupon = Coupon::factory()->percentage()->create();
+    $redemption = app(CouponsManager::class)->redeem($coupon->code, createOrder(), createUser());
+
+    try {
+        DB::transaction(function () use ($redemption): void {
+            app(CouponsManager::class)->reverse($redemption);
+
+            throw new RuntimeException('refund failed');
+        });
+    } catch (RuntimeException) {
+    }
+
+    expect($fired)->toBe(0)
+        ->and($redemption->fresh()?->status)->toBe(RedemptionStatus::Applied)
+        ->and($coupon->fresh()?->redemptions_count)->toBe(1);
 });

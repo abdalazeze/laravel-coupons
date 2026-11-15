@@ -14,6 +14,13 @@ Planning document for the "Later" list in `CLAUDE.md`. Nothing here is built yet
 
 Free features first because goals 1 and 2 (portfolio, lead generation) need adoption before a paid tier has buyers.
 
+## Decisions (2026-11-15)
+
+- **Stacking** is enforced by default in 0.2.0 and listed under "Changed" in the changelog. No config flag.
+- **Scoped `min_order_amount`** compares against the whole order, not the eligible amount.
+- **Filament**: target the current major only.
+- **Pro distribution** (licence-key Composer host vs private Satis): still open, decide before Pro 1.
+
 ---
 
 ## 0.1.2 — Hardening
